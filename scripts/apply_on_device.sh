@@ -13,7 +13,11 @@ if [ ! -f "$HEADER_BACKUP" ]; then
   dd if="$SPLASH_PART" of="$HEADER_BACKUP" bs=16384 count=1 status=none
 fi
 
-python3 "$WORKDIR/build_splash.py" "$WORKDIR/nmk_logo.png" "$HEADER_BACKUP" "$WORKDIR/splash_new.bin"
+PY=python3
+if ! "$PY" -c "import PIL" 2>/dev/null; then
+  PY=/usr/local/venv/bin/python3
+fi
+"$PY" "$WORKDIR/build_splash.py" "$WORKDIR/nmk_logo.png" "$HEADER_BACKUP" "$WORKDIR/splash_new.bin"
 dd if="$WORKDIR/splash_new.bin" of="$SPLASH_PART" bs=1M conv=notrunc status=none
 
 cp "$WORKDIR/black_bg.jpg" /data/black_bg.jpg
@@ -23,9 +27,9 @@ if [ ! -f "$CONTINUE_SH" ] || ! grep -qF "$HOOK_MARKER" "$CONTINUE_SH"; then
   {
     echo "#!/usr/bin/env bash"
     echo "$HOOK_MARKER"
-    echo "mount -o remount,rw / 2>/dev/null"
-    echo "cp /data/black_bg.jpg /usr/comma/bg.jpg 2>/dev/null"
-    echo "mount -o remount,ro / 2>/dev/null"
+    echo "sudo mount -o remount,rw / 2>/dev/null"
+    echo "sudo cp /data/black_bg.jpg /usr/comma/bg.jpg 2>/dev/null"
+    echo "sudo mount -o remount,ro / 2>/dev/null"
     if [ -f "$CONTINUE_SH" ]; then
       tail -n +2 "$CONTINUE_SH"
     else
